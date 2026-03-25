@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Keuangan</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f4f6f9;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #2193b0, #6dd5ed);
+  color: white;
+  padding: 20px;
+  border-radius: 0 0 20px 20px;
+  text-align: center;
+}
+
+.saldo {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+/* CONTAINER */
+.container {
+  padding: 15px;
+}
+
+/* FORM */
+.form-card {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  margin-top: -30px;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #2193b0;
+  color: white;
+  font-size: 16px;
+}
+
+/* LIST */
+.list {
+  margin-top: 20px;
+}
+
+.card {
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.card-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.income {
+  color: green;
+}
+
+.expense {
+  color: red;
+}
+
+/* DELETE BTN */
+.delete {
+  background: crimson;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: white;
+  font-size: 12px;
+}
+
+/* RESET BUTTON */
+.reset {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: crimson;
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>💰 Keuangan</h2>
+  <div class="saldo">Rp <span id="saldo">0</span></div>
+</div>
+
+<div class="container">
+
+  <div class="form-card">
+    <select id="tipe">
+      <option value="pemasukan">Pemasukan</option>
+      <option value="pengeluaran">Pengeluaran</option>
+    </select>
+
+    <input type="text" id="ket" placeholder="Keterangan">
+    <input type="number" id="jumlah" placeholder="Jumlah">
+    <input type="date" id="tgl">
+
+    <button onclick="tambah()">Tambah</button>
+  </div>
+
+  <div class="list" id="list"></div>
+
+</div>
+
+<button class="reset" onclick="openModal()">🗑</button>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <p>Reset semua data?</p>
+    <button onclick="reset()">Ya</button>
+    <button onclick="closeModal()">Tidak</button>
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("data")) || [];
+
+function render() {
+  let list = document.getElementById("list");
+  let saldo = 0;
+  list.innerHTML = "";
+
+  data.forEach((item, i) => {
+    let div = document.createElement("div");
+    div.className = "card";
+
+    saldo += item.tipe === "pemasukan" ? item.jumlah : -item.jumlah;
+
+    div.innerHTML = `
+      <div class="card-left">
+        <strong>${item.ket}</strong>
+        <small>${item.tgl}</small>
+        <span class="${item.tipe === 'pemasukan' ? 'income' : 'expense'}">
+          ${item.tipe === 'pemasukan' ? '+' : '-'}Rp ${item.jumlah}
+        </span>
+      </div>
+      <div>
+        <button class="delete" onclick="hapus(${i})">X</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  document.getElementById("saldo").innerText = saldo;
+  localStorage.setItem("data", JSON.stringify(data));
+}
+
+function tambah() {
+  let tipe = document.getElementById("tipe").value;
+  let ket = document.getElementById("ket").value;
+  let jumlah = parseInt(document.getElementById("jumlah").value);
+  let tgl = document.getElementById("tgl").value;
+
+  if (!ket || !jumlah || !tgl) {
+    alert("Isi semua data!");
+    return;
+  }
+
+  data.push({ tipe, ket, jumlah, tgl });
+
+  document.getElementById("ket").value = "";
+  document.getElementById("jumlah").value = "";
+
+  render();
+}
+
+function hapus(i) {
+  data.splice(i, 1);
+  render();
+}
+
+function openModal() {
+  document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function reset() {
+  data = [];
+  render();
+  closeModal();
+}
+
+render();
+</script>
+
+</body>
+  </html>
